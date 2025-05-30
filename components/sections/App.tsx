@@ -157,33 +157,33 @@ export default function App() {
   }
 
   return (
-    <section ref={sectionRef} className="min-h-screen w-full bg-[#f8f9fa] relative overflow-hidden flex items-center">
-      <div className="w-full  mx-auto px-6 lg:px-12 xl:px-16 ">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <section ref={sectionRef} className="min-h-screen w-full bg-[#f8f9fa] relative overflow-hidden flex items-center py-4 sm:py-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 h-full max-h-screen">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-center h-full">
         
-          <div ref={textContentRef} className="flex flex-col justify-center text-center lg:text-left order-2 lg:order-1 ">
-            <h3 ref={titleRef} className="text-lg title  lg:text-xl text-[#7dd3fc] font-medium tracking-wide uppercase mb-6">
+          <div ref={textContentRef} className="flex flex-col justify-center text-center lg:text-left order-2 lg:order-1 min-h-0 flex-shrink overflow-hidden">
+            <h3 ref={titleRef} className="text-sm sm:text-base lg:text-xl text-[#7dd3fc] font-medium tracking-wide uppercase mb-2 sm:mb-4 flex-shrink-0">
               INSIDE THE APP
             </h3>
             <h2
               ref={subtitleRef}
-              className="text-4xl lg:text-6xl xl:text-7xl font-light leading-tight text-gray-900 mb-6"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-light leading-tight text-gray-900 mb-2 sm:mb-4 flex-shrink-0"
             >
               {AppSlides[activeIndex].title}
             </h2>
             <p
               ref={descriptionRef}
-              className="text-lg lg:text-xl xl:text-2xl text-center lg:text-left leading-relaxed para text-gray-600 mb-12 w-full lg:max-w-lg"
+              className="text-sm sm:text-[10px] lg:text-lg xl:text-xl text-center lg:text-left leading-relaxed para text-gray-600 mb-4 sm:mb-8 w-full lg:max-w-lg flex-shrink min-h-0 line-clamp-3 sm:line-clamp-none font-light sm:font-normal"
             >
               {AppSlides[activeIndex].content}
             </p>
 
-            <div ref={dotsRef} className="flex justify-center lg:justify-start space-x-3">
-              {AppSlides.map((_, index) => (
+            <div ref={dotsRef} className="flex justify-center lg:justify-start space-x-3 flex-shrink-0 mt-auto">
+              {AppSlides.map((_, index) => ( 
                 <button
                   key={index}
-                  className={`h-2.5 rounded-full transition-all duration-500 ease-out cursor-pointer hover:scale-110 ${
-                    index === activeIndex ? "w-10 bg-teal-600" : "w-2.5 bg-gray-300 hover:bg-gray-400"
+                  className={`h-2 sm:h-2.5 rounded-full transition-all duration-500 ease-out cursor-pointer hover:scale-110 ${
+                    index === activeIndex ? "w-8 sm:w-10 bg-teal-600" : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
                   }`}
                   onClick={() => handleDotClick(index)}
                   aria-label={`Go to slide ${index + 1}`}
@@ -193,9 +193,9 @@ export default function App() {
           </div>
 
         
-          <div ref={phoneFrameRef} className="flex justify-center items-center order-1 lg:order-2">
+          <div ref={phoneFrameRef} className="flex justify-center items-center order-1 lg:order-2 flex-shrink-0">
             <div className="relative">
-              <div className="  frame-size relative h-[76vw] w-[40vw]  sm:h-[60vw] sm:w-[32vw] md:w-[35vw] md:h-[66vw] lg:w-[19vw] lg:h-[36vw] xl:w-[260px] xl:h-[520px]">
+              <div className="frame-size relative h-[60vh] w-[30vh] sm:h-[65vh] sm:w-[32vh] md:h-[70vh] md:w-[35vh] lg:w-[19vw] lg:h-[36vw] xl:w-[260px] xl:h-[520px] max-h-[520px]">
                
                 <div className="absolute inset-0 z-20">
                   <Image
@@ -208,7 +208,7 @@ export default function App() {
                 </div>
 
                 <div className="absolute inset-0 z-10">
-                  <div className="absolute top-[1.5%] left-[7%] right-[7%] bottom-[1.5%] rounded-[28px] lg:rounded-[12px] xl:rounded-[12px] overflow-hidden">
+                  <div className="absolute top-[1.5%] left-[7%] right-[7%] bottom-[1.5%] rounded-[20px] sm:rounded-[28px] lg:rounded-[12px] xl:rounded-[12px] overflow-hidden">
                     <Swiper
                       modules={[Autoplay, Navigation]}
                       slidesPerView={1}

@@ -73,7 +73,7 @@ export default function Feel() {
         </div>
         
         {/* Video/Image */}
-        <div className="flex-1 flex items-center justify-center px-6">
+        <div className="flex-1 flex  items-center justify-center px-6">
           <div className="w-full max-w-xs aspect-square bg-black rounded-3xl overflow-hidden">
             <div className="w-full h-full bg-black flex items-center justify-center">
               <div className="text-white/20 text-sm">Video Content</div>

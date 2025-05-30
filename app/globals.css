@@ -59,3 +59,137 @@ h6 {
     font-size: 2.5rem;
   }
 }
+
+
+
+/* Smooth Animated Sections Styles */
+.smooth-sections-container {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.smooth-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+.smooth-section-outer,
+.smooth-section-inner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.smooth-section-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure smooth transforms */
+.smooth-section-outer,
+.smooth-section-inner,
+.smooth-section-bg {
+  will-change: transform;
+}
+
+/* Disable default scrolling behaviors during animation */
+body.smooth-sections-active {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Optional: Add subtle transitions for non-animated elements */
+.smooth-section * {
+  will-change: auto;
+}
+
+/* Ensure text elements are optimized for animation */
+.smooth-section h1,
+.smooth-section h2,
+.smooth-section h3,
+.smooth-section p {
+  will-change: transform, opacity;
+}
+/* Smooth Animated Sections Styles */
+.smooth-sections-container {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.smooth-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+.smooth-section-outer,
+.smooth-section-inner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.smooth-section-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure smooth transforms */
+.smooth-section-outer,
+.smooth-section-inner,
+.smooth-section-bg {
+  will-change: transform;
+}
+
+/* Disable default scrolling behaviors during animation */
+body.smooth-sections-active {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Optional: Add subtle transitions for non-animated elements */
+.smooth-section * {
+  will-change: auto;
+}
+
+/* Ensure text elements are optimized for animation */
+.smooth-section h1,
+.smooth-section h2,
+.smooth-section h3,
+.smooth-section p {
+  will-change: transform, opacity;
+}
+
+/* Intro overlay styles */
+.intro-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Navigation hints */
+.nav-hint {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  user-select: none;
+  pointer-events: none;
+}

@@ -17,6 +17,7 @@ export default function HeroSection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Initial animations with proper delays
       gsap.fromTo(
         firstViewRef.current?.children || [],
         { y: 50, opacity: 0 },
@@ -30,14 +31,12 @@ export default function HeroSection() {
         },
       );
 
-
       gsap.fromTo(
         logoRef.current,
         { opacity: 0, y: -20 },
         { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", delay: 7.2 },
       );
 
-     
       gsap.fromTo(
         imageRef.current,
         { scale: 1 },
@@ -60,7 +59,7 @@ export default function HeroSection() {
         },
       );
 
-      // Second view text reveal 
+      // Second view text reveal with scroll trigger
       gsap.fromTo(
         secondViewRef.current?.children || [],
         { y: 30, opacity: 0 },
@@ -85,8 +84,8 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section ref={heroRef} className="relative h-[200vh] overflow-hidden">
-    
+    <section ref={heroRef} className="relative h-[200vh] overflow-hidden z-10">
+      {/* Background Image */}
       <div ref={imageRef} className="absolute inset-0 w-full h-full z-0" style={{ willChange: "transform" }}>
         <Image
           src="/images/heroFullbg.png"
@@ -104,6 +103,7 @@ export default function HeroSection() {
         />
       </div>
 
+      {/* Logo */}
       <div ref={logoRef} className="absolute top-12 left-20 z-20">
        <Image
           src="/mainLogomini.svg"
@@ -116,9 +116,10 @@ export default function HeroSection() {
         />
       </div>
 
+      {/* First view */}
       <div
         ref={firstViewRef}
-        className="relative z-10 h-screen flex flex-col items-center justify-center text-white px-4"
+        className="relative z-30 h-screen flex flex-col items-center justify-center text-white px-4"
       >
         <div className="text-center max-w-4xl mx-auto">
           <p className="text-lg md:text-xl mb-6 opacity-90 title">Stress is a loop that keeps you stuck.</p>
@@ -135,10 +136,10 @@ export default function HeroSection() {
         </div>
       </div>
 
-     
+      {/* Second view */}
       <div
         ref={secondViewRef}
-        className="relative z-10 h-screen flex items-center justify-center text-white px-4"
+        className="relative z-20 h-screen flex items-center justify-center text-white px-4"
       >
         <div className="text-center max-w-4xl mx-auto">
           <h2 className="text-xl para md:text-2xl mb-8 opacity-90">
