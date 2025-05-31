@@ -10,10 +10,15 @@ const affectedDataSlide = [
   { title: "31%", text: "rank stress as their #1 health concern." },
 ];
 
-const Stats = () => {
+interface StatsProps {
+  isActive?: boolean;
+}
+
+const Stats = ({ isActive }: StatsProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const slidesRef = useRef<Array<HTMLDivElement | null>>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitializedRef = useRef(false);
 
   const animateSlideIn = (index: number) => {
     const slide = slidesRef.current[index];
@@ -45,10 +50,24 @@ const Stats = () => {
     }
   };
 
-  useEffect(() => {
-    animateSlideIn(activeIndex);
+  const startSlideShow = () => {
+    if (!isActive) return;
 
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Start with first slide if not initialized
+    if (!isInitializedRef.current) {
+      animateSlideIn(0);
+      isInitializedRef.current = true;
+    }
+
+    // Set up interval for slide transitions
     intervalRef.current = setInterval(() => {
+      if (!isActive) return; // Double check if still active
+
       const nextIndex = (activeIndex + 1) % affectedDataSlide.length;
       animateSlideOut(activeIndex);
       setTimeout(() => {
@@ -56,11 +75,42 @@ const Stats = () => {
         animateSlideIn(nextIndex);
       }, 1000); // Match animation duration
     }, 4000);
+  };
+
+  const stopSlideShow = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Handle section activation/deactivation
+  useEffect(() => {
+    if (isActive) {
+      startSlideShow();
+    } else {
+      stopSlideShow();
+      // Hide all slides when section is not active
+      slidesRef.current.forEach((slide) => {
+        if (slide) {
+          gsap.set(slide, { autoAlpha: 0, pointerEvents: "none" });
+        }
+      });
+      isInitializedRef.current = false;
+      setActiveIndex(0); // Reset to first slide
+    }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      stopSlideShow();
     };
-  }, [activeIndex]);
+  }, [isActive]);
+
+  // Handle slide changes when activeIndex updates
+  useEffect(() => {
+    if (isActive && isInitializedRef.current) {
+      animateSlideIn(activeIndex);
+    }
+  }, [activeIndex, isActive]);
 
   return (
     <section

@@ -1,5 +1,32 @@
-import React from 'react';
-export default function Disrupt() {
+import React, { useEffect, useRef } from 'react';
+
+interface DisruptProps {
+  isActive?: boolean;
+}
+
+export default function Disrupt({ isActive }: DisruptProps) {
+  const desktopVideoRef = useRef<HTMLVideoElement>(null);
+  const tabletVideoRef = useRef<HTMLVideoElement>(null);
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const videos = [desktopVideoRef.current, tabletVideoRef.current, mobileVideoRef.current].filter(Boolean) as HTMLVideoElement[];
+    
+    videos.forEach(videoNode => {
+      if (isActive) {
+        if (videoNode.paused) {
+          videoNode.play().catch(error => {
+            console.warn("Video play prevented:", error);
+          });
+        }
+      } else {
+        if (!videoNode.paused) {
+          videoNode.pause();
+        }
+      }
+    });
+  }, [isActive]);
+
   return (
     <section className="h-screen relative overflow-hidden bg-white"
       id="disrupt"
@@ -20,16 +47,16 @@ export default function Disrupt() {
           </div>
         </div>
         
-       
         <div className="w-2/5 h-full flex items-center justify-center px-8">
           <div className="w-full max-w-[17rem]">
             <video
+              ref={desktopVideoRef}
               src="/weight_animation.mp4"
-              autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full "
+              className="w-full h-full"
+              tabIndex={-1}
             />
           </div>
         </div>
@@ -51,16 +78,16 @@ export default function Disrupt() {
           </div>
         </div>
         
-        {/* Illustration - Bottom Half */}
         <div className="flex-1 flex items-center justify-center px-8">
           <div className="w-full max-w-sm">
             <video
+              ref={tabletVideoRef}
               src="/weight_animation.mp4"
-              autoPlay
               loop
               muted
               playsInline
               className="w-full h-auto"
+              tabIndex={-1}
             />
           </div>
         </div>
@@ -68,7 +95,6 @@ export default function Disrupt() {
 
       {/* Mobile Layout */}
       <div className="md:hidden h-full flex flex-col py-8">
-        {/* Text Content */}
         <div className="flex-1 flex items-center px-6">
           <div className="space-y-4">
             <h3 className="text-base font-normal text-sky-400 leading-relaxed">
@@ -83,16 +109,16 @@ export default function Disrupt() {
           </div>
         </div>
         
-        {/* Illustration */}
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="w-full max-w-xs">
              <video
+              ref={mobileVideoRef}
               src="/weight_animation.mp4"
-              autoPlay
               loop
               muted
               playsInline
               className="w-full h-auto"
+              tabIndex={-1}
             />
           </div>
         </div>
@@ -100,3 +126,5 @@ export default function Disrupt() {
     </section>
   )
 }
+
+//issue: disrupt section loaded on the top of the page, but it should be below the stats section.
