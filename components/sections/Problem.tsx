@@ -2,79 +2,73 @@
 import React, { useEffect, useRef } from 'react';
 import LaptopLottie from '@/components/laptopLottie';
 import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SplitType from 'split-type';
 
-interface ProblemProps {
-  isActive?: boolean;
-}
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
 
-export default function Problem({ isActive }: ProblemProps) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const splitTextRef = useRef<SplitType | null>(null);
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+export default function Problem() {
+  const sectionRef = useRef(null);
+  const triggerRef = useRef<ScrollTrigger | undefined>(undefined);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
+    let tl: gsap.core.Timeline | undefined;
 
-    // Initialize SplitType
-    const headings = section.querySelectorAll(".problem-heading");
-    if (headings.length > 0) {
-      splitTextRef.current = new SplitType(Array.from(headings) as HTMLElement[], {
+    const setupAnimations = () => {
+      const section = sectionRef.current;
+
+      // Split text for animation
+      const heading = new SplitType(".problem-heading", {
         types: "words,chars",
       });
 
+      if (!section) return;
+
+      gsap.set(section, { clearProps: "all" });
+
       // Prevent words from breaking across lines
-      section.querySelectorAll(".problem-heading .word").forEach((el) => {
+      document.querySelectorAll(".problem-heading .word").forEach((el) => {
         (el as HTMLElement).style.whiteSpace = "nowrap";
       });
 
-      // Set initial state
-      if (splitTextRef.current.chars) {
-        gsap.set(splitTextRef.current.chars, { 
-          fontWeight: "300", 
-          color: "#515151" 
-        });
-      }
-    }
+      // Timeline for animation
+      tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top-=100% center",
+          end: "bottom-=100% top",
+          toggleActions: "play reverse play reverse",
+          markers: false,
+        },
+        defaults: { ease: "power2.out" },
+      });
 
+      tl.fromTo(
+        ".problem-heading .char",
+        { fontWeight: "300", color: "#515151" },
+        {
+          fontWeight: "400",
+          color: "#000",
+          stagger: 0.1,
+          duration: 0.2,
+        }
+      );
+
+      triggerRef.current = tl.scrollTrigger;
+    };
+
+    requestAnimationFrame(() => {
+      setTimeout(setupAnimations, 100);
+    });
+
+    // Clean up
     return () => {
-      // Cleanup
-      if (splitTextRef.current && headings.length > 0) {
-        splitTextRef.current.revert();
-      }
-      if (timelineRef.current) {
-        timelineRef.current.kill();
-      }
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      tl?.kill();
+      triggerRef.current?.kill();
     };
   }, []);
-
-  useEffect(() => {
-    if (!splitTextRef.current?.chars) return;
-
-    // Kill previous timeline
-    if (timelineRef.current) {
-      timelineRef.current.kill();
-    }
-
-    if (isActive) {
-      // Animate in when section becomes active
-      timelineRef.current = gsap.timeline({ defaults: { ease: "power2.out" } });
-      timelineRef.current.to(splitTextRef.current.chars, {
-        fontWeight: "400",
-        color: "#000",
-        stagger: 0.03,
-        duration: 0.3,
-        delay: 0.5 // Small delay after section transition
-      });
-    } else {
-      // Reset to initial state when section becomes inactive
-      gsap.set(splitTextRef.current.chars, { 
-        fontWeight: "300", 
-        color: "#515151" 
-      });
-    }
-  }, [isActive]);
 
   return (
     <section
@@ -93,7 +87,7 @@ export default function Problem({ isActive }: ProblemProps) {
             <span className="problem-heading font-[400] text-black">
               Stress is a lifestyle issue.
             </span>{" "}
-            It builds quietly, drains you daily, but we don't talk about it enough.
+            It builds quietly, drains you daily, but we don’t talk about it enough.
           </p>
         </div>
         <div className="flex justify-center items-center">
@@ -104,7 +98,7 @@ export default function Problem({ isActive }: ProblemProps) {
       </div>
 
       {/* Mobile Layout (below md) */}
-      <div className="lg:hidden w-full h-full flex flex-col justify-center items-center px-6 py-12">
+      <div className="lg:hidden md:grid w-full h-full flex flex-col justify-center items-center px-6 py-12">
         <div className="w-full flex flex-col items-center text-center gap-8">
           <h2 className="text-[#525299] font-semibold text-[1.5rem] title leading-tight">
             The Problem
@@ -113,7 +107,7 @@ export default function Problem({ isActive }: ProblemProps) {
             <span className="problem-heading font-medium text-black">
               Stress is a lifestyle issue.
             </span>{" "}
-            It builds quietly, drains you daily, but we don't talk about it enough.
+            It builds quietly, drains you daily, but we don’t talk about it enough.
           </p>
           <div className="w-full mt-4">
             <LaptopLottie />
