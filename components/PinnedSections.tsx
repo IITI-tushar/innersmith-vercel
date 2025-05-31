@@ -17,466 +17,458 @@ import Footer from "./sections/Footer"
 gsap.registerPlugin(Observer)
 
 const sections = [
-  { id: "hero", component: Hero, title: "Hero", zIndex: 10 },
-  { id: "problem", component: Problem, title: "Problem", zIndex: 8 },
-  { id: "stats", component: Stats, title: "Stats", zIndex: 9 },
-  { id: "disrupt", component: Disrupt, title: "Disrupt", zIndex: 10 },
-  { id: "feel", component: Feel, title: "Feel", zIndex: 11 },
-  { id: "journey", component: Journey, title: "Journey", zIndex: 12 },
-  { id: "unbox", component: Unbox, title: "Unbox", zIndex: 13 },
-  { id: "app", component: App, title: "App", zIndex: 14 },
-  { id: "tools", component: Tools, title: "Tools", zIndex: 15 },
-  { id: "footer", component: Footer, title: "Footer", zIndex: 16 },
+  { id: "hero", component: Hero, title: "Hero" },
+  { id: "problem", component: Problem, title: "Problem" },
+  { id: "stats", component: Stats, title: "Stats" },
+  { id: "disrupt", component: Disrupt, title: "Disrupt" },
+  { id: "feel", component: Feel, title: "Feel" },
+  { id: "journey", component: Journey, title: "Journey" },
+  { id: "unbox", component: Unbox, title: "Unbox" },
+  { id: "app", component: App, title: "App" },
+  { id: "tools", component: Tools, title: "Tools" },
+  { id: "footer", component: Footer, title: "Footer" },
 ]
 
 export default function SmoothAnimatedSections() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const fixedContainerRef = useRef<HTMLDivElement>(null)
   const sectionsRef = useRef<(HTMLDivElement | null)[]>([])
   const outerWrappersRef = useRef<(HTMLDivElement | null)[]>([])
   const innerWrappersRef = useRef<(HTMLDivElement | null)[]>([])
   const backgroundsRef = useRef<(HTMLDivElement | null)[]>([])
-  const currentIndexRef = useRef(0)
-  const animatingRef = useRef(false)
-  const observerRef = useRef<any>(null)
-  const [currentSection, setCurrentSection] = useState(0)
-  const [showIntro, setShowIntro] = useState(true)
-  const [isInitialized, setIsInitialized] = useState(false)
   
-  // Throttling for smoother scroll
-  const lastScrollTime = useRef(0)
-  const SCROLL_DELAY = 300 // 300ms delay between scroll actions
+  const currentIndexRef = useRef(-1) 
+  const animatingRef = useRef(false)
+  const observerRef = useRef<Observer | null>(null)
+  
+  const [currentSection, setCurrentSection] = useState(0) 
+  const [showIntro, setShowIntro] = useState(true) 
+  const problemRef = useRef<HTMLDivElement>(null)
 
-  const gotoSection = useCallback((index: number, direction: number) => {
-    const sectionsElements = sectionsRef.current.filter(Boolean)
-    const outerWrappers = outerWrappersRef.current.filter(Boolean)
-    const innerWrappers = innerWrappersRef.current.filter(Boolean)
-    const backgrounds = backgroundsRef.current.filter(Boolean)
+  const gsapSections = sections.slice(2)
 
-    if (sectionsElements.length === 0) return
-    if (index < 0 || index >= sectionsElements.length) return
-    if (animatingRef.current || index === currentIndexRef.current) return
-    
-    animatingRef.current = true
-    setCurrentSection(index)
-
-    console.log(`Going to section: ${sections[index]?.title} (index: ${index})`);
-
-    if (currentIndexRef.current === 0 && index > 0) {
-      setShowIntro(false)
+  const gotoSection = useCallback((gsapIndex: number, direction: number) => {
+    if (animatingRef.current) return;
+    if (gsapIndex < 0 || gsapIndex >= gsapSections.length) {
+      return;
     }
 
-    const fromTop = direction === -1
-    const dFactor = fromTop ? -1 : 1
-    
-    const tl = gsap.timeline({
-      defaults: { duration: 0.8, ease: "power2.inOut" }, // Faster, smoother easing
-      onComplete: () => {
-        animatingRef.current = false
-        
-        // Clean up sections that should no longer be visible
-        if (index === 0) {
-          // If we're at Hero, hide all other sections
-          for (let i = 1; i < sectionsElements.length; i++) {
-            gsap.set(sectionsElements[i], {
-              opacity: 0,
-              visibility: "hidden",
-              zIndex: 0,
-              y: "0%"
-            })
-          }
-        } else {
-          // For layered sections, hide sections beyond current index
-          for (let i = index + 1; i < sectionsElements.length; i++) {
-            gsap.set(sectionsElements[i], {
-              opacity: 0,
-              visibility: "hidden",
-              zIndex: 0,
-              y: "0%"
-            })
-          }
-          
-          // Reset y position for sections that were slid down during backward navigation
-          for (let i = 1; i <= index; i++) {
-            gsap.set(sectionsElements[i], {
-              y: "0%"
-            })
-          }
-        }
-      }
-    })
+    const sectionsElements = sectionsRef.current.filter(Boolean) as HTMLDivElement[];
+    const outerWrappers = outerWrappersRef.current.filter(Boolean) as HTMLDivElement[];
+    const innerWrappers = innerWrappersRef.current.filter(Boolean) as HTMLDivElement[];
+    const backgrounds = backgroundsRef.current.filter(Boolean) as HTMLDivElement[];
 
-    // Set current section z-index and visibility
-    gsap.set(sectionsElements[index], { 
-      zIndex: sections[index].zIndex,
-      opacity: 1,
-      visibility: "visible"
-    })
-
-    // Handle layered sections (Problem onwards)
-    if (index >= 1) {
-      // Keep all previous sections from Problem onwards visible as background layers
-      for (let i = 1; i <= index; i++) {
-        if (sectionsElements[i]) {
-          gsap.set(sectionsElements[i], {
-            opacity: 1,
-            visibility: "visible",
-            zIndex: sections[i].zIndex
-          })
-          gsap.set([outerWrappers[i], innerWrappers[i]], { yPercent: 0 })
-        }
-      }
-      
-      // Hide sections after current index
-      for (let i = index + 1; i < sectionsElements.length; i++) {
-        if (sectionsElements[i]) {
-          gsap.set(sectionsElements[i], {
-            opacity: 0,
-            visibility: "hidden",
-            zIndex: 0
-          })
-        }
-      }
+    if (sectionsElements.length === 0 || gsapIndex >= sectionsElements.length || !outerWrappers[gsapIndex] || !innerWrappers[gsapIndex] || !backgrounds[gsapIndex]) {
+        console.error("GSAP target elements not found for index:", gsapIndex);
+        return;
     }
+    
+    const prevGsapIndex = currentIndexRef.current;
+    if (gsapIndex === prevGsapIndex && currentSection === gsapIndex + 2) return;
 
-    // Special handling for different transitions
-    if (currentIndexRef.current === 0 && index === 1) {
-      // Hero to Problem - normal transition
-      gsap.set(sectionsElements[0], { zIndex: 5 })
-      
-      tl.to(backgrounds[0], { 
-        yPercent: -15 * dFactor,
-        duration: 0.8,
-        ease: "power2.inOut"
-      })
-      .to(sectionsElements[0], {
-        opacity: 0,
-        duration: 0.6,
-        ease: "power2.out"
-      }, 0.3)
-      .fromTo([outerWrappers[1], innerWrappers[1]], {
-        yPercent: 100 * dFactor
-      }, {
-        yPercent: 0,
-        duration: 0.8,
-        ease: "power2.inOut"
-      }, 0)
-      .fromTo(backgrounds[1], { 
-        yPercent: 15 * dFactor 
-      }, { 
-        yPercent: 0,
-        duration: 0.8,
-        ease: "power2.inOut"
-      }, 0)
-      
-    } else if (index >= 2 && direction === 1) {
-      // Forward: Roll new section over the previous ones
-      gsap.set(sectionsElements[index], { y: "100%" })
-      gsap.set([outerWrappers[index], innerWrappers[index]], { yPercent: 0 })
-      
-      tl.to(sectionsElements[index], {
-        y: "0%",
-        duration: 0.8,
-        ease: "power2.inOut"
-      })
-      
-    } else if (index >= 1 && direction === -1) {
-      // Backward: Roll current section down to reveal previous section underneath
-      const currentSectionIndex = currentIndexRef.current
-      
-      if (currentSectionIndex > index) {
-        // First, ensure all sections from Problem up to current are properly layered
-        for (let i = 1; i <= currentSectionIndex; i++) {
-          if (sectionsElements[i]) {
-            gsap.set(sectionsElements[i], {
-              opacity: 1,
-              visibility: "visible",
-              zIndex: sections[i].zIndex,
-              y: "0%"
-            })
-          }
-        }
-        
-        // Now animate the current section sliding down to reveal the target section
-        tl.to(sectionsElements[currentSectionIndex], {
-          y: "100%",
-          duration: 0.8,
-          ease: "power2.inOut"
-        })
-        
-        // Also animate any sections above the current one
-        for (let i = currentSectionIndex + 1; i < sectionsElements.length; i++) {
-          if (sectionsElements[i]) {
-            tl.to(sectionsElements[i], {
-              y: "100%",
-              duration: 0.8,
-              ease: "power2.inOut"
-            }, 0)
-          }
-        }
-        
-        // Ensure target section is properly positioned and visible
-        gsap.set(sectionsElements[index], {
-          y: "0%",
-          opacity: 1,
-          visibility: "visible",
-          zIndex: sections[index].zIndex
-        })
-      }
-      
-    } else if (currentIndexRef.current >= 1 && index === 0) {
-      // Going back to Hero from any layered section
-      const currentSectionIndex = currentIndexRef.current
-      
-      // Animate all layered sections sliding down
-      for (let i = 1; i <= currentSectionIndex; i++) {
-        if (sectionsElements[i]) {
-          tl.to(sectionsElements[i], {
-            y: "100%",
-            duration: 0.8,
-            ease: "power2.inOut"
-          }, 0)
-        }
-      }
-      
-      // Show Hero
-      gsap.set(sectionsElements[0], { 
+    // --- Special case: Transitioning TO Stats (gsapIndex 0) FROM Problem (prevGsapIndex -1) ---
+    if (gsapIndex === 0 && prevGsapIndex === -1 && direction === 1) {
+      animatingRef.current = true;
+      setCurrentSection(2); // Global section is Stats
+
+      gsap.set(sectionsElements[0], { // Stats section itself
         zIndex: 10,
         opacity: 1,
         visibility: "visible"
-      })
-      gsap.set([outerWrappers[0], innerWrappers[0]], { yPercent: 0 })
-      gsap.set(backgrounds[0], { yPercent: 0 })
-      
-      // Animate Hero entrance
-      tl.fromTo(sectionsElements[0], {
-        opacity: 0
-      }, {
-        opacity: 1,
-        duration: 0.6,
-        ease: "power2.out"
-      }, 0.4)
-    }
+      });
 
-    currentIndexRef.current = index
-  }, [])
-
-  const handleNavigation = useCallback((direction: 'up' | 'down') => {
-    // Throttle scroll actions for smoother experience
-    const now = Date.now()
-    if (now - lastScrollTime.current < SCROLL_DELAY) {
-      return
-    }
-    lastScrollTime.current = now
-    
-    if (animatingRef.current) return
-    
-    const nextIndex = direction === 'up' 
-      ? currentIndexRef.current - 1 
-      : currentIndexRef.current + 1
-
-    if (nextIndex < 0 || nextIndex >= sections.length) return
-
-    gotoSection(nextIndex, direction === 'up' ? -1 : 1)
-  }, [gotoSection])
-
-  // Initialize sections setup
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    const ctx = gsap.context(() => {
-      const sectionsElements = sectionsRef.current.filter(Boolean)
-      const outerWrappers = outerWrappersRef.current.filter(Boolean)
-      const innerWrappers = innerWrappersRef.current.filter(Boolean)
-
-      if (sectionsElements.length === 0) return
-
-      console.log('Initializing sections. Total sections:', sectionsElements.length);
-      console.log('Section order:', sections.map(s => s.title));
-
-      // Initial setup
-      sectionsElements.forEach((section, index) => {
-        if (index === 0) {
-          // Show Hero section
-          gsap.set(section, { 
-            opacity: 1,
-            visibility: "visible",
-            zIndex: sections[index].zIndex,
-            y: "0%"
-          })
-          gsap.set([outerWrappers[0], innerWrappers[0]], { yPercent: 0 })
-          console.log('Initialized Hero section as visible');
-        } else {
-          // Hide all other sections, but set proper z-indexes
-          gsap.set(section, { 
-            opacity: 0,
-            visibility: "hidden",
-            zIndex: sections[index].zIndex,
-            y: "0%"
-          })
-          gsap.set([outerWrappers[index], innerWrappers[index]], { yPercent: 100 })
+      // Animate outer/inner wrappers of Stats in
+      const dFactor = 1; // Coming from bottom
+      gsap.timeline({
+        onComplete: () => {
+          animatingRef.current = false;
         }
       })
-
-      setIsInitialized(true)
-
-      // Create observer for scroll/touch/wheel events
-      observerRef.current = Observer.create({
-        type: "wheel,touch,pointer",
-        wheelSpeed: -1,
-        onDown: () => handleNavigation('up'),
-        onUp: () => handleNavigation('down'),
-        tolerance: 15, // Higher tolerance to prevent too rapid scrolling
-        preventDefault: true
-      })
-
-    }, containerRef)
-
-    return () => {
-      ctx.revert()
-      if (observerRef.current) {
-        observerRef.current.kill()
-      }
-    }
-  }, [handleNavigation])
-
-  // Force initial state
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      document.body.style.overflow = 'hidden'
-      document.documentElement.style.overflow = 'hidden'
-
-      if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'manual';
-      }
-      window.scrollTo(0, 0);
+      .fromTo([outerWrappers[0], innerWrappers[0]], {
+        yPercent: (i) => i ? -100 * dFactor : 100 * dFactor 
+      }, {
+        yPercent: 0,
+        duration: 1.2,
+        ease: "power1.inOut",
+      }, 0)
+      .fromTo(backgrounds[0], { 
+        yPercent: 15 * dFactor 
+      }, { 
+        yPercent: 0,
+        duration: 1.2,
+        ease: "power1.inOut",
+      }, 0);
 
       currentIndexRef.current = 0;
-      setCurrentSection(0);
+      return; 
     }
 
-    return () => {
-      if (typeof window !== 'undefined') {
-        document.body.style.overflow = ''
-        document.documentElement.style.overflow = ''
+    // --- Default GSAP section-to-section transition ---
+    animatingRef.current = true;
+    setCurrentSection(gsapIndex + 2);
+
+    const fromTop = direction === -1;
+    const dFactor = fromTop ? -1 : 1;
+    
+    const tl = gsap.timeline({
+      defaults: { duration: 1.2, ease: "power1.inOut" },
+      onComplete: () => {
+        animatingRef.current = false;
+        sectionsElements.forEach((section, i) => {
+          gsap.set(section, { 
+            zIndex: i === gsapIndex ? 10 : 0,
+            opacity: i === gsapIndex ? 1 : 0,
+            visibility: i === gsapIndex ? "visible" : "hidden"
+          });
+        });
+      }
+    });
+
+    // Incoming section (gsapIndex)
+    gsap.set(sectionsElements[gsapIndex], { 
+      zIndex: 10, 
+      opacity: 1, 
+      visibility: "visible"
+    });
+
+    // Outgoing section (prevGsapIndex)
+    if (prevGsapIndex >= 0 && prevGsapIndex < gsapSections.length && prevGsapIndex !== gsapIndex) {
+      if (outerWrappers[prevGsapIndex] && innerWrappers[prevGsapIndex] && backgrounds[prevGsapIndex]) {
+        gsap.set(sectionsElements[prevGsapIndex], { 
+          zIndex: 5, 
+          opacity: 1, 
+          visibility: "visible"
+        });
+        
+        tl.to([outerWrappers[prevGsapIndex], innerWrappers[prevGsapIndex]], {
+          yPercent: (i) => i ? 100 * dFactor : -100 * dFactor, 
+        }, 0)
+        .to(backgrounds[prevGsapIndex], { 
+          yPercent: -15 * dFactor,
+        }, 0);
       }
     }
-  }, [])
 
-  // Keyboard navigation
+    // Animate incoming section's wrappers
+    tl.fromTo([outerWrappers[gsapIndex], innerWrappers[gsapIndex]], {
+      yPercent: (i) => i ? -100 * dFactor : 100 * dFactor
+    }, {
+      yPercent: 0,
+    }, 0)
+    .fromTo(backgrounds[gsapIndex], { 
+      yPercent: 15 * dFactor 
+    }, { 
+      yPercent: 0,
+    }, 0);
+
+    currentIndexRef.current = gsapIndex;
+  }, [gsapSections.length, currentSection]);
+
+  useEffect(() => {
+    if (currentSection < 2) { 
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      if (observerRef.current) {
+        observerRef.current.kill();
+        observerRef.current = null;
+      }
+
+      if (fixedContainerRef.current) {
+        // When in native scroll mode, ensure the fixed container is fully hidden and non-interactive.
+        // The opacity animation to 0 is primarily handled by the exitTimeline when coming from Stats.
+        // This `gsap.set` ensures the final state.
+        gsap.set(fixedContainerRef.current, { 
+          opacity: 0, 
+          pointerEvents: 'none', 
+          zIndex: -1 
+        });
+      }
+
+    } else { // GSAP Mode 
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+
+      if (fixedContainerRef.current) {
+         // When entering GSAP mode, ensure the fixed container is visible and interactive.
+         // The opacity animation to 1 can be quick or instant.
+         gsap.set(fixedContainerRef.current, { // Changed from gsap.to for immediacy if preferred
+           opacity: 1, 
+           pointerEvents: 'auto', 
+           zIndex: 50 
+          });
+      }
+
+      const targetGsapIndex = currentSection - 2;
+      if (currentIndexRef.current === -1 && currentSection === 2) {
+        setTimeout(() => gotoSection(0, 1), 50); 
+      } else if (currentIndexRef.current !== targetGsapIndex && targetGsapIndex >= 0 && targetGsapIndex < gsapSections.length) {
+        setTimeout(() => gotoSection(targetGsapIndex, targetGsapIndex > currentIndexRef.current ? 1 : -1), 50);
+      }
+
+      if (!observerRef.current && fixedContainerRef.current) {
+        observerRef.current = Observer.create({
+          target: fixedContainerRef.current, 
+          type: "wheel,touch,pointer",
+          wheelSpeed: -1, 
+          onDown: () => { 
+            if (animatingRef.current) return;
+            const currentGsapIdx = currentIndexRef.current;
+            if (currentGsapIdx > 0) {
+              gotoSection(currentGsapIdx - 1, -1);
+            } else if (currentGsapIdx === 0) { // At Stats, trying to go up to Problem
+              animatingRef.current = true;
+              const statsOuter = outerWrappersRef.current[0];
+              const statsInner = innerWrappersRef.current[0];
+              const statsBg = backgroundsRef.current[0];
+              const statsSectionEl = sectionsRef.current[0];
+
+              const exitTimeline = gsap.timeline({
+                onComplete: () => {
+                  if (statsSectionEl) {
+                      gsap.set(statsSectionEl, { opacity: 0, visibility: "hidden", zIndex: 0 });
+                  }
+                  if (statsOuter) gsap.set(statsOuter, { yPercent: 100 });
+                  if (statsInner) gsap.set(statsInner, { yPercent: -100 });
+                  
+                  setCurrentSection(1); 
+                  currentIndexRef.current = -1; 
+                  animatingRef.current = false;
+                }
+              });
+
+              if (statsOuter && statsInner && statsBg) {
+                exitTimeline.to([statsOuter, statsInner], {
+                  yPercent: (i) => i ? -100 : 100, 
+                  duration: 1.0,
+                  ease: "power1.inOut",
+                }, 0)
+                .to(statsBg, {
+                  yPercent: 15, 
+                  duration: 1.0,
+                  ease: "power1.inOut",
+                }, 0);
+              }
+
+              if (fixedContainerRef.current) {
+                exitTimeline.to(fixedContainerRef.current, {
+                  opacity: 0,
+                  duration: 1.0, 
+                  ease: "power1.inOut"
+                }, 0); 
+              }
+              
+              if (exitTimeline.getChildren().length === 0) {
+                console.warn("Stats exit: No animations added to timeline. Completing manually.");
+                if (statsSectionEl) gsap.set(statsSectionEl, { opacity: 0, visibility: "hidden", zIndex: 0 });
+                if (statsOuter) gsap.set(statsOuter, { yPercent: 100 });
+                if (statsInner) gsap.set(statsInner, { yPercent: -100 });
+                if (fixedContainerRef.current) gsap.set(fixedContainerRef.current, { opacity: 0 }); // Ensure container is hidden in fallback
+                setCurrentSection(1);
+                currentIndexRef.current = -1;
+                animatingRef.current = false;
+              }
+            }
+          },
+          onUp: () => { 
+            if (animatingRef.current) return;
+            const currentGsapIdx = currentIndexRef.current;
+            if (currentGsapIdx < gsapSections.length - 1) {
+              gotoSection(currentGsapIdx + 1, 1);
+            }
+          },
+          tolerance: 10,
+          preventDefault: true
+        });
+      }
+    }
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.kill();
+        observerRef.current = null;
+      }
+    };
+  }, [currentSection, gotoSection, gsapSections.length]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (currentSection >= 2) return; 
+
+      if (problemRef.current) {
+        const rect = problemRef.current.getBoundingClientRect();
+        if (rect.bottom <= window.innerHeight + 50) { 
+          setCurrentSection(2);
+        }
+      }
+    };
+    if (currentSection < 2) {
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [currentSection]);
+
+  useEffect(() => {
+    const sectionsElements = sectionsRef.current.filter(Boolean);
+    const outerWrappers = outerWrappersRef.current.filter(Boolean);
+    const innerWrappers = innerWrappersRef.current.filter(Boolean);
+
+    if (sectionsElements.length > 0) {
+      gsap.set(sectionsElements, { 
+        opacity: 0,
+        visibility: "hidden",
+        zIndex: 0 
+      });
+      gsap.set(outerWrappers, { yPercent: 100 });
+      gsap.set(innerWrappers, { yPercent: -100 });
+    }
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (animatingRef.current || !isInitialized) return
-      
-      switch (e.key) {
-        case 'ArrowUp':
-        case 'PageUp':
-          e.preventDefault()
-          handleNavigation('up')
-          break
-        case 'ArrowDown':
-        case 'PageDown':
-        case ' ':
-          e.preventDefault()
-          handleNavigation('down')
-          break
-        case 'Home':
-          e.preventDefault()
-          gotoSection(0, 1)
-          break
-        case 'End':
-          e.preventDefault()
-          gotoSection(sections.length - 1, -1)
-          break
+      if (currentSection < 2) { // Native scroll mode
+        let scrolled = false;
+        if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+          e.preventDefault();
+          if (problemRef.current && currentSection === 1) { 
+            const rect = problemRef.current.getBoundingClientRect();
+            if (rect.bottom <= window.innerHeight + 100) { 
+              setCurrentSection(2); 
+              scrolled = true;
+            }
+          }
+          if(!scrolled) window.scrollBy({ top: window.innerHeight / 2, behavior: 'smooth' });
+        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+          e.preventDefault();
+           if (currentSection === 0 && window.scrollY === 0) { /* at top */ }
+           else window.scrollBy({ top: -window.innerHeight / 2, behavior: 'smooth' });
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          setCurrentSection(0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else { // GSAP mode
+        if (animatingRef.current) return;
+        const currentGsapIdx = currentIndexRef.current;
+        switch (e.key) {
+          case 'ArrowUp':
+          case 'PageUp':
+            e.preventDefault();
+            if (currentGsapIdx > 0) {
+              gotoSection(currentGsapIdx - 1, -1);
+            } else if (currentGsapIdx === 0) { // At Stats, trying to go up to Problem
+              animatingRef.current = true;
+              const statsOuter = outerWrappersRef.current[0];
+              const statsInner = innerWrappersRef.current[0];
+              const statsBg = backgroundsRef.current[0];
+              const statsSectionEl = sectionsRef.current[0];
+
+              const exitTimeline = gsap.timeline({
+                onComplete: () => {
+                  if (statsSectionEl) {
+                      gsap.set(statsSectionEl, { opacity: 0, visibility: "hidden", zIndex: 0 });
+                  }
+                  if (statsOuter) gsap.set(statsOuter, { yPercent: 100 });
+                  if (statsInner) gsap.set(statsInner, { yPercent: -100 });
+                  
+                  setCurrentSection(1); 
+                  currentIndexRef.current = -1; 
+                  animatingRef.current = false;
+                }
+              });
+
+              if (statsOuter && statsInner && statsBg) {
+                exitTimeline.to([statsOuter, statsInner], { yPercent: (i) => i ? -100 : 100, duration: 1.0, ease: "power1.inOut" }, 0)
+                .to(statsBg, { yPercent: 15, duration: 1.0, ease: "power1.inOut" }, 0);
+              }
+              
+              if (fixedContainerRef.current) {
+                exitTimeline.to(fixedContainerRef.current, { opacity: 0, duration: 1.0, ease: "power1.inOut" }, 0);
+              }
+
+              if (exitTimeline.getChildren().length === 0) {
+                if (statsSectionEl) gsap.set(statsSectionEl, { opacity: 0, visibility: "hidden", zIndex: 0 });
+                if (statsOuter) gsap.set(statsOuter, { yPercent: 100 });
+                if (statsInner) gsap.set(statsInner, { yPercent: -100 });
+                setCurrentSection(1);
+                currentIndexRef.current = -1;
+                animatingRef.current = false;
+              }
+            }
+            break;
+          case 'ArrowDown':
+          case 'PageDown':
+          case ' ':
+            e.preventDefault();
+            if (currentGsapIdx < gsapSections.length - 1) {
+              gotoSection(currentGsapIdx + 1, 1);
+            }
+            break;
+          case 'Home':
+            e.preventDefault();
+            setCurrentSection(0); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+          case 'End':
+            e.preventDefault();
+            if (gsapSections.length > 0) {
+              gotoSection(gsapSections.length - 1, 1);
+            }
+            break;
+        }
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleNavigation, gotoSection, isInitialized])
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSection, gotoSection, gsapSections.length]);
 
-  // Auto-hide intro
   useEffect(() => {
     if (showIntro && currentSection === 0) {
-      const timer = setTimeout(() => {
-        setShowIntro(false)
-      }, 4000)
-
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setShowIntro(false), 4000);
+      return () => clearTimeout(timer);
     }
-  }, [showIntro, currentSection])
-
-  // Prevent scroll events
-  useEffect(() => {
-    const preventScroll = (e: Event) => {
-      e.preventDefault()
-      return false
-    }
-
-    const preventTouchMove = (e: TouchEvent) => {
-      e.preventDefault()
-      return false
-    }
-
-    window.addEventListener('scroll', preventScroll, { passive: false })
-    window.addEventListener('wheel', preventScroll, { passive: false })
-    window.addEventListener('touchmove', preventTouchMove, { passive: false })
-    document.addEventListener('scroll', preventScroll, { passive: false })
-    document.addEventListener('wheel', preventScroll, { passive: false })
-    document.addEventListener('touchmove', preventTouchMove, { passive: false })
-
-    return () => {
-      window.removeEventListener('scroll', preventScroll)
-      window.removeEventListener('wheel', preventScroll)
-      window.removeEventListener('touchmove', preventTouchMove)
-      document.removeEventListener('scroll', preventScroll)
-      document.removeEventListener('wheel', preventScroll)
-      document.removeEventListener('touchmove', preventTouchMove)
-    }
-  }, [])
+  }, [showIntro, currentSection]);
 
   return (
-    <div ref={containerRef} className="smooth-sections-container fixed inset-0 w-full h-full overflow-hidden bg-black">
-      {/* Debug indicator */}
-      <div className="fixed top-4 left-4 z-50 bg-black/80 text-white px-3 py-1 rounded text-sm">
-        Section: {sections[currentSection]?.title} ({currentSection + 1}/{sections.length})
+    <div className="min-h-screen w-full bg-black">
+      <div>
+        <div id="hero" className="relative w-full h-full">
+          <Hero />
+        </div>
+        <div id="problem" className="relative w-full h-full" ref={problemRef}>
+          <Problem />
+        </div>
       </div>
-
-      {/* Sections */}
-      {sections.map((section, index) => {
-        const SectionComponent = section.component
-        const isActive = index === currentSection;
-        return (
-          <div
-            key={section.id}
-            ref={(el) => { sectionsRef.current[index] = el }}
-            className="smooth-section absolute inset-0 w-full h-full"
-            style={{ zIndex: section.zIndex }}
-          >
+      <div
+        ref={fixedContainerRef}
+        className="smooth-sections-container fixed inset-0 w-full h-full overflow-hidden bg-black"
+        style={{
+          opacity: 0, 
+          pointerEvents: 'none',
+          zIndex: -1,
+        }}
+      >
+        {gsapSections.map((section, index) => {
+          const SectionComponent = section.component;
+          return (
             <div
-              ref={(el) => { outerWrappersRef.current[index] = el }}
-              className="smooth-section-outer w-full h-full overflow-hidden"
+              key={section.id}
+              ref={el => { sectionsRef.current[index] = el; }} 
+              className="smooth-section absolute inset-0 w-full h-full"
             >
-              <div
-                ref={(el) => { innerWrappersRef.current[index] = el }}
-                className="smooth-section-inner w-full h-full overflow-hidden"
-              >
-                <div
-                  ref={(el) => { backgroundsRef.current[index] = el }}
-                  className="smooth-section-bg w-full h-full"
-                >
-                  <div className="w-full h-full relative">
-                    {(section.id === 'problem' || section.id === 'stats' || section.id === 'disrupt') ? (
-                      <SectionComponent isActive={isActive} />
-                    ) : (
+              <div ref={el => { outerWrappersRef.current[index] = el; }} className="w-full h-full overflow-hidden">
+                <div ref={el => { innerWrappersRef.current[index] = el; }} className="w-full h-full overflow-hidden">
+                  <div ref={el => { backgroundsRef.current[index] = el; }} className="w-full h-full">
+                    <div className="w-full h-full relative">
                       <SectionComponent />
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )
-      })}
+          );
+        })}
+      </div>
     </div>
-  )
+  );
 }
